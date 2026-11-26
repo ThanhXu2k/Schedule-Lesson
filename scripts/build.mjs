@@ -1,0 +1,14 @@
+import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const read=p=>readFile(root+p,'utf8');
+await mkdir(root+'apps-script',{recursive:true});
+await mkdir(root+'dist',{recursive:true});
+const core=await read('src/core.js'),css=await read('src/styles.css'),client=await read('src/app.js'),html=await read('src/index.html');
+const bundled=html.replace('<!-- STYLES -->','<style>'+css+'</style>').replace('<!-- SCRIPTS -->','<script>'+core+'</script><script>'+client+'</script>');
+await writeFile(root+'dist/index.html',bundled);
+await writeFile(root+'apps-script/Index.html',bundled);
+await writeFile(root+'apps-script/Core.gs',core);
+await copyFile(root+'gas/Code.gs',root+'apps-script/Code.gs');
+await copyFile(root+'gas/appsscript.json',root+'apps-script/appsscript.json');
+console.log('Built browser application and Apps Script deployment files.');

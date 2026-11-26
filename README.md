@@ -262,4 +262,3 @@ For local development, retain browser data through the same browser profile and 
 ## Maintenance
 
 Recheck Google's quotas, scopes, conference support, and deployment settings before upgrading the app or enabling it in a different account. Rebuild and run all local checks after source changes. English is the single maintained interface and documentation language.
-

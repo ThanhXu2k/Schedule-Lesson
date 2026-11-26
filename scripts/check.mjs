@@ -1,0 +1,13 @@
+import {readFile,readdir} from 'node:fs/promises';
+import vm from 'node:vm';
+const root=new URL('../',import.meta.url);
+for(const f of ['src/core.js','src/app.js','gas/Code.gs'])new vm.Script(await readFile(new URL(f,root),'utf8'),{filename:f});
+const manifest=JSON.parse(await readFile(new URL('gas/appsscript.json',root),'utf8'));
+if(manifest.webapp.access!=='MYSELF'||manifest.webapp.executeAs!=='USER_ACCESSING')throw Error('Owner-only deployment required');
+for(const folder of ['apps-script','dist'])if(!(await readdir(new URL(folder+'/',root))).length)throw Error('Missing build output');
+const read=f=>readFile(new URL(f,root),'utf8');
+const html=await read('src/index.html'),css=await read('src/styles.css'),core=await read('src/core.js'),client=await read('src/app.js');
+const expected=html.replace('<!-- STYLES -->','<style>'+css+'</style>').replace('<!-- SCRIPTS -->','<script>'+core+'</script><script>'+client+'</script>');
+for(const f of ['dist/index.html','apps-script/Index.html'])if(await read(f)!==expected)throw Error(f+' is stale; run npm run build.');
+for(const [source,built] of [['src/core.js','apps-script/Core.gs'],['gas/Code.gs','apps-script/Code.gs'],['gas/appsscript.json','apps-script/appsscript.json']])if(await read(source)!==await read(built))throw Error(built+' is stale; run npm run build.');
+console.log('JavaScript syntax, deployment manifest, and build outputs verified.');
